@@ -1,3 +1,5 @@
+### .env
+
 ```env
 smtp_email=
 smtp_host=
