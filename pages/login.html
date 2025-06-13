@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Discord Clone</title>
+    <script src="https://hamutan86.pythonanywhere.com/nonstress/nonstress.js" async defer></script>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: var(--bg-tertiary);
+      }
+
+      .login-container {
+        background-color: var(--bg-primary);
+        border-radius: 5px;
+        padding: 32px;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .login-header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .login-header h1 {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+
+      .login-header p {
+        color: var(--text-muted);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 10px;
+        background-color: var(--bg-tertiary);
+        border: none;
+        border-radius: 3px;
+        color: var(--text-normal);
+        font-size: 16px;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--brand);
+      }
+
+      .login-button {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--brand);
+        color: white;
+        border: none;
+        border-radius: 3px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .login-button:hover {
+        background-color: #4752c4;
+      }
+
+      .login-footer {
+        margin-top: 20px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .login-footer a {
+        color: var(--text-link);
+        text-decoration: none;
+      }
+
+      .login-footer a:hover {
+        text-decoration: underline;
+      }
+
+      .error-text {
+        color: var(--danger);
+        margin-top: 16px;
+        text-align: center;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-header">
+        <h1>Welcome back!</h1>
+        <p>We're so excited to see you again!</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+
+        <div class="error-text" id="error-message"></div>
+
+        <button type="submit" class="login-button">Login</button>
+      </form>
+
+      <div class="login-footer">Need an account? <a href="/register">Register</a></div>
+    </div>
+
+    <script src="/static/js/api-service.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Check if already logged in
+        const token = localStorage.getItem("token");
+        if (token) {
+          // Redirect to main page
+          window.location.href = "/app";
+        }
+
+        const loginForm = document.getElementById("login-form");
+        const errorMessage = document.getElementById("error-message");
+
+        loginForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+
+          try {
+            // Disable form
+            const submitButton = loginForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = "Logging in...";
+
+            // Hide previous error
+            errorMessage.style.display = "none";
+
+            // Attempt login
+            const response = await API.Auth.login(username, password);
+
+            if (response && response.success && response.token) {
+              // Redirect to main page
+              window.location.href = "/app";
+            } else {
+              // Show error
+              errorMessage.textContent = "Login failed. Please check your credentials.";
+              errorMessage.style.display = "block";
+              submitButton.disabled = false;
+              submitButton.textContent = "Login";
+            }
+          } catch (error) {
+            // Show error
+            errorMessage.textContent = error.message || "Login failed. Please try again later.";
+            errorMessage.style.display = "block";
+
+            // Re-enable form
+            const submitButton = loginForm.querySelector('button[type="submit"]');
+            submitButton.disabled = false;
+            submitButton.textContent = "Login";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Discord Clone</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Left sidebar - Channels -->
+      <div class="sidebar channels-sidebar">
+        <div class="sidebar-header">
+          <h2>Channels</h2>
+          <button id="add-channel-btn" class="icon-button add-channel-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
+        <div class="channels-list">
+          <!-- Channels will be added here dynamically -->
+        </div>
+        <div class="server-settings">
+          <button id="server-settings-btn" class="server-settings-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M12 1l9.5 5.5v11L12 23l-9.5-5.5v-11L12 1zm0 2.311L4.5 7.653v8.694l7.5 4.342 7.5-4.342V7.653L12 3.311zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
+                fill="currentColor"
+              />
+            </svg>
+            <span>Server Settings</span>
+          </button>
+        </div>
+        <div class="user-info">
+          <div class="user-avatar">
+            <img src="https://via.placeholder.com/32" alt="User avatar" />
+            <span class="status-indicator online"></span>
+          </div>
+          <div class="user-details">
+            <span class="username">Username</span>
+            <span class="user-id">#1234</span>
+          </div>
+          <div class="user-controls">
+            <button class="icon-button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 3a9 9 0 0 1 9 9v7.5a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 19.5V12a9 9 0 0 1 9-9zm0 2a7 7 0 0 0-7 7v7.5h14V12a7 7 0 0 0-7-7z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <button class="icon-button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 3a9 9 0 0 1 9 9v7.5a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 19.5V12a9 9 0 0 1 9-9zm0 2a7 7 0 0 0-7 7v7.5h14V12a7 7 0 0 0-7-7z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <button class="icon-button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 3a9 9 0 0 1 9 9v7.5a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 19.5V12a9 9 0 0 1 9-9zm0 2a7 7 0 0 0-7 7v7.5h14V12a7 7 0 0 0-7-7z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main chat area -->
+      <div class="chat-container">
+        <div class="mobile-nav">
+          <button id="toggle-channels">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z" fill="currentColor" />
+            </svg>
+          </button>
+          <button id="toggle-members">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="none" d="M0 0h24v24H0z" />
+              <path
+                d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="chat-header">
+          <div class="channel-info">
+            <span class="channel-hash">#</span>
+            <span class="channel-name">general</span>
+          </div>
+          <div class="channel-topic">Welcome to the general channel</div>
+        </div>
+
+        <div class="messages-container" id="messages-container">
+          <div class="messages-wrapper" id="messages-wrapper">
+            <!-- Messages will be added here dynamically -->
+          </div>
+        </div>
+
+        <div class="message-input-container">
+          <div class="message-input-wrapper">
+            <button class="attachment-button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M14 13.5V8a4 4 0 1 0-8 0v5.5a6.5 6.5 0 1 0 13 0V4h2v9.5a8.5 8.5 0 1 1-17 0V8a6 6 0 1 1 12 0v5.5a3.5 3.5 0 0 1-7 0V8h2v5.5a1.5 1.5 0 0 0 3 0z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+            <input type="text" id="message-input" placeholder="Message #general" />
+            <button class="emoji-button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path
+                  d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-5-7h2a3 3 0 0 0 6 0h2a5 5 0 0 1-10 0zm1-2a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm8 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar - Members -->
+      <div class="sidebar members-sidebar">
+        <div class="sidebar-header">
+          <h2>Members</h2>
+        </div>
+        <div class="members-list" id="members-list">
+          <!-- Members will be added here dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Context Menus -->
+    <div class="context-menu" id="channel-context-menu">
+      <div class="context-menu-item">
+        <span>Mark as Read</span>
+      </div>
+      <div class="context-menu-item admin-only">
+        <span>Edit Channel</span>
+      </div>
+      <div class="context-menu-item">
+        <span>Mute Channel</span>
+      </div>
+      <div class="context-menu-item admin-only">
+        <span>Channel Permissions</span>
+      </div>
+      <div class="context-menu-item admin-only danger">
+        <span>Delete Channel</span>
+      </div>
+    </div>
+
+    <div class="context-menu" id="message-context-menu">
+      <div class="context-menu-item">
+        <span>Add Reaction</span>
+      </div>
+      <div class="context-menu-item">
+        <span>Reply</span>
+      </div>
+      <div class="context-menu-item message-owner-only">
+        <span>Edit Message</span>
+      </div>
+      <div class="context-menu-item">
+        <span>Copy Message</span>
+      </div>
+      <div class="context-menu-item message-owner-only danger">
+        <span>Delete Message</span>
+      </div>
+    </div>
+
+    <div class="context-menu" id="member-context-menu">
+      <div class="context-menu-item">
+        <span>View Profile</span>
+      </div>
+      <div class="context-menu-item">
+        <span>Message</span>
+      </div>
+      <div class="context-menu-item admin-only">
+        <span>Change Nickname</span>
+      </div>
+      <div class="context-menu-item admin-only">
+        <span>Manage Roles</span>
+      </div>
+      <div class="context-menu-item admin-only danger">
+        <span>Kick Member</span>
+      </div>
+    </div>
+
+    <!-- Modal for adding/editing channels -->
+    <div class="modal" id="channel-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="channel-modal-title">Create Channel</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="channel-form">
+            <div class="form-group">
+              <label for="channel-name-input">Channel Name</label>
+              <input type="text" id="channel-name-input" placeholder="new-channel" maxlength="32" />
+            </div>
+            <div class="form-group">
+              <label for="channel-topic-input">Channel Topic (optional)</label>
+              <input type="text" id="channel-topic-input" placeholder="What's this channel about?" />
+            </div>
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="admin-only-checkbox" />
+              <label for="admin-only-checkbox">Admin Only Channel</label>
+            </div>
+            <div class="form-group">
+              <label>Role Access</label>
+              <div class="role-permissions" id="channel-role-permissions">
+                <!-- Role permissions will be added here dynamically -->
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn cancel-btn">Cancel</button>
+              <button type="submit" class="btn primary-btn">Create Channel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for confirming channel deletion -->
+    <div class="modal" id="delete-channel-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Delete Channel</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Are you sure you want to delete <span id="delete-channel-name">#channel-name</span>? This action cannot be
+            undone.
+          </p>
+          <div class="form-actions">
+            <button type="button" class="btn cancel-btn">Cancel</button>
+            <button type="button" class="btn danger-btn" id="confirm-delete-channel">Delete Channel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for channel permissions -->
+    <div class="modal" id="channel-permissions-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Channel Permissions</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="channel-permissions-header">
+            <h3 id="permissions-channel-name">#channel-name</h3>
+          </div>
+          <div class="role-permissions" id="permissions-role-list">
+            <!-- Role permissions will be added here dynamically -->
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn cancel-btn">Cancel</button>
+            <button type="button" class="btn primary-btn" id="save-permissions">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for server settings -->
+    <div class="modal" id="server-settings-modal">
+      <div class="modal-content modal-content-large">
+        <div class="modal-header">
+          <h2>サーバー設定</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body server-settings-body">
+          <div class="settings-sidebar">
+            <div class="settings-nav">
+              <div class="settings-nav-item active" data-tab="roles">ロール</div>
+              <div class="settings-nav-item" data-tab="members">メンバー</div>
+            </div>
+          </div>
+          <div class="settings-content">
+            <div class="settings-tab active" id="roles-tab">
+              <div class="roles-header">
+                <h3>ロール</h3>
+                <button class="btn primary-btn" id="add-role-btn">ロールを作成</button>
+              </div>
+              <div class="roles-list" id="roles-list">
+                <!-- Roles will be added here dynamically -->
+              </div>
+            </div>
+            <div class="settings-tab" id="members-tab">
+              <h3>メンバー</h3>
+              <div class="members-list-settings" id="members-list-settings">
+                <!-- Members will be added here dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for role creation/editing -->
+    <div class="modal" id="role-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="role-modal-title">Create Role</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="role-form">
+            <div class="form-group">
+              <label for="role-name-input">Role Name</label>
+              <input type="text" id="role-name-input" placeholder="New Role" maxlength="32" />
+            </div>
+            <div class="form-group">
+              <label for="role-color-input">Role Color</label>
+              <input type="color" id="role-color-input" value="#5865f2" />
+            </div>
+            <div class="form-group">
+              <label>Permissions</label>
+              <div class="permissions-list">
+                <div class="permission-item">
+                  <input type="checkbox" id="permission-admin" class="permission-checkbox" />
+                  <label for="permission-admin">Administrator</label>
+                  <span class="permission-description"
+                    >Members with this permission have every permission and bypass channel specific permissions.</span
+                  >
+                </div>
+                <div class="permission-item">
+                  <input type="checkbox" id="permission-manage-channels" class="permission-checkbox" />
+                  <label for="permission-manage-channels">Manage Channels</label>
+                  <span class="permission-description"
+                    >Members with this permission can create, edit, and delete channels.</span
+                  >
+                </div>
+                <div class="permission-item">
+                  <input type="checkbox" id="permission-manage-roles" class="permission-checkbox" />
+                  <label for="permission-manage-roles">Manage Roles</label>
+                  <span class="permission-description"
+                    >Members with this permission can create and edit roles lower than their highest role.</span
+                  >
+                </div>
+                <div class="permission-item">
+                  <input type="checkbox" id="permission-kick-members" class="permission-checkbox" />
+                  <label for="permission-kick-members">Kick Members</label>
+                  <span class="permission-description"
+                    >Members with this permission can remove members from the server.</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn cancel-btn">Cancel</button>
+              <button type="submit" class="btn primary-btn">Create Role</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for managing member roles -->
+    <div class="modal" id="member-roles-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Manage Member Roles</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="member-info" id="member-roles-info">
+            <!-- Member info will be added here dynamically -->
+          </div>
+          <div class="form-group">
+            <label>Roles</label>
+            <div class="member-roles-list" id="member-roles-list">
+              <!-- Roles will be added here dynamically -->
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn cancel-btn">Cancel</button>
+            <button type="button" class="btn primary-btn" id="save-member-roles">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay for modals -->
+    <div class="modal-overlay" id="modal-overlay"></div>
+
+    <script src="/static/js/api-service.js"></script>
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>

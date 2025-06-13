@@ -1,0 +1,9 @@
+fastapi[all]
+aiosqlite
+alembic
+snowflake-id
+pydantic_extra_types
+cryptography
+python-dotenv
+aiosmtplib
+bcrypt
