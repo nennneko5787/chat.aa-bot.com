@@ -15,7 +15,7 @@ from snowflake import SnowflakeGenerator
 
 from app.services.db import DBService
 from app.services.email import sendEMail
-from app.services.user import userNameCheck
+from app.services.user import mailAddrCheck, userNameCheck
 
 dotenv.load_dotenv()
 
@@ -52,6 +52,9 @@ async def register(backgroundTasks: BackgroundTasks, model: Register):
     if await userNameCheck(model.username):
         raise HTTPException(400, "ユーザーネームはすでに使用されています。")
 
+    if await mailAddrCheck(model.email) or model.email in addrs:
+        raise HTTPException(400, "メールアドレスはすでに使用されています。")
+
     salt = bcrypt.gensalt(rounds=10, prefix=b"2a")
     model.password = bcrypt.hashpw(model.password.encode(), salt).decode()
 
@@ -82,7 +85,7 @@ https://localhost/app
 """
         message.set_content(body, charset="utf-8")
         await sendEMail(message)
-    except:
+    except Exception:
         traceback.print_exc()
         raise HTTPException(
             500,

@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column("id", sa.BIGINT(), primary_key=True),
         sa.Column(
             "created_at",
-            sa.TIMESTAMP(timezone=True),
+            sa.DateTime(timezone=True),
             server_default=sa.func.now(),
             nullable=False,
         ),
@@ -33,7 +33,7 @@ def upgrade() -> None:
         sa.Column("display_name", sa.VARCHAR(32), nullable=True),
         sa.Column("avatar_url", sa.VARCHAR(), nullable=True),
         sa.Column("roles", sa.JSON(), server_default="[]", nullable=False),
-        sa.Column("email", sa.VARCHAR(), nullable=False),
+        sa.Column("email", sa.VARCHAR(), unique=True, nullable=False),
         sa.Column("password", sa.VARCHAR(), nullable=False),
     )
 

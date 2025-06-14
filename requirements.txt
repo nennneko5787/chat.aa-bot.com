@@ -7,3 +7,4 @@ cryptography
 python-dotenv
 aiosmtplib
 bcrypt
+tzdata; sys.platform == "win32"

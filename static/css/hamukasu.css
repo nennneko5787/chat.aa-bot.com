@@ -1,0 +1,58 @@
+.hamukasu-ui {
+  display: flex;
+  align-items: center;
+  font-size: 75%;
+}
+
+.hamukasu-ui-container {
+  width: fit-content;
+  height: 10vh;
+  margin: 0 auto;
+  padding: 0.5em;
+  border: solid 1px;
+  border-color: black;
+  background-color: #efefef;
+  position: relative;
+}
+
+.hamukasu-ui-result {
+  margin-right: 10vh;
+  margin-left: 10vh;
+}
+
+.hamukasu-ui-image {
+  width: 3em;
+  height: 3em;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.hamukasu-ui img.hamukasu-ui-image {
+  object-fit: contain;
+}
+
+.hamukasu-ui-image.failed {
+  filter: brightness(0) saturate(100%) invert(27%) sepia(100%) saturate(7456%) hue-rotate(357deg) brightness(100%)
+    contrast(118%);
+}
+
+.hamukasu-ui-image.success {
+  filter: brightness(0) saturate(100%) invert(60%) sepia(82%) saturate(2531%) hue-rotate(78deg) brightness(110%)
+    contrast(130%);
+}
+
+.hamukasu-ui-detail {
+  position: absolute;
+  right: 2.5px;
+  bottom: 0;
+  font-size: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hamukasu-ui-container {
+    border-color: white;
+    background-color: #232323;
+  }
+}

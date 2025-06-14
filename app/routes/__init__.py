@@ -1,9 +1,12 @@
-from . import pages
-from .api import login, me, register
+from . import gateway, pages
+from .api import channels, login, register, roles, users
 
 __all__ = (
     "pages",
-    "me",
+    "users",
     "register",
     "login",
+    "channels",
+    "roles",
+    "gateway",
 )

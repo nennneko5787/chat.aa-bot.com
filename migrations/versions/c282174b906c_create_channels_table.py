@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column("id", sa.BIGINT(), primary_key=True),
         sa.Column(
             "created_at",
-            sa.TIMESTAMP(timezone=True),
+            sa.DateTime(timezone=True),
             server_default=sa.func.now(),
             nullable=False,
         ),
@@ -38,6 +38,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("overwrites", sa.JSON(), server_default="{}", nullable=False),
+        sa.Column("topic", sa.VARCHAR(2048), nullable=True),
     )
 
 

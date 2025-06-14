@@ -26,6 +26,9 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(pages.router)
-app.include_router(me.router)
+app.include_router(users.router)
 app.include_router(register.router)
 app.include_router(login.router)
+app.include_router(channels.router)
+app.include_router(roles.router)
+app.include_router(gateway.router)

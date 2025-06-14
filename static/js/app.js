@@ -39,182 +39,6 @@ loadingOverlay.innerHTML = `
 `;
 document.body.appendChild(loadingOverlay);
 
-// API object (replace with your actual API implementation)
-const APIPath = {
-  Auth: {
-    getCurrentUser: async () => {
-      // Simulate fetching current user
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const token = localStorage.getItem("token");
-          if (token) {
-            // Simulate user data
-            const userData = localStorage.getItem("user");
-            resolve(userData);
-          } else {
-            resolve(null);
-          }
-        }, 500);
-      });
-    },
-  },
-  Users: {
-    getUsers: async () => {
-      // Simulate fetching users
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const users = JSON.parse(localStorage.getItem("users") || "[]");
-          resolve({ users });
-        }, 500);
-      });
-    },
-    updateUserRoles: async (userId, roleIds) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const users = JSON.parse(localStorage.getItem("users") || "[]");
-          const userIndex = users.findIndex((u) => u.id === userId);
-          if (userIndex !== -1) {
-            users[userIndex].roles = roleIds;
-            localStorage.setItem("users", JSON.stringify(users));
-            resolve({ success: true });
-          } else {
-            resolve({ success: false, error: "User not found" });
-          }
-        }, 500);
-      });
-    },
-  },
-  Channels: {
-    getChannels: async () => {
-      // Simulate fetching channels
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const channels = JSON.parse(localStorage.getItem("channels") || "[]");
-          resolve({ channels });
-        }, 500);
-      });
-    },
-    createChannel: async (channelData) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const channels = JSON.parse(localStorage.getItem("channels") || "[]");
-          const newChannel = {
-            id: Date.now().toString(), // Simulate ID generation
-            ...channelData,
-          };
-          channels.push(newChannel);
-          localStorage.setItem("channels", JSON.stringify(channels));
-          resolve({ channel: newChannel });
-        }, 500);
-      });
-    },
-    deleteChannel: async (channelId) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          let channels = JSON.parse(localStorage.getItem("channels") || "[]");
-          channels = channels.filter((c) => c.id !== channelId);
-          localStorage.setItem("channels", JSON.stringify(channels));
-          resolve({ success: true });
-        }, 500);
-      });
-    },
-    updateChannelPermissions: async (channelId, permissions) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const channels = JSON.parse(localStorage.getItem("channels") || "[]");
-          const channelIndex = channels.findIndex((c) => c.id === channelId);
-          if (channelIndex !== -1) {
-            channels[channelIndex].rolePermissions = permissions;
-            localStorage.setItem("channels", JSON.stringify(channels));
-            resolve({ success: true });
-          } else {
-            resolve({ success: false, error: "Channel not found" });
-          }
-        }, 500);
-      });
-    },
-  },
-  Messages: {
-    getMessages: async (channelId) => {
-      // Simulate fetching messages
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const messages = JSON.parse(localStorage.getItem("messages") || "[]").filter(
-            (m) => m.channelId === channelId
-          );
-          resolve({ messages });
-        }, 500);
-      });
-    },
-    sendMessage: async (channelId, content) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const messages = JSON.parse(localStorage.getItem("messages") || "[]");
-          const newMessage = {
-            id: Date.now().toString(), // Simulate ID generation
-            channelId,
-            userId: currentUser.id,
-            content,
-            timestamp: new Date().toISOString(),
-          };
-          messages.push(newMessage);
-          localStorage.setItem("messages", JSON.stringify(messages));
-          resolve({ message: newMessage });
-        }, 500);
-      });
-    },
-  },
-  Roles: {
-    getRoles: async () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-          resolve({ roles });
-        }, 500);
-      });
-    },
-    createRole: async (roleData) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-          const newRole = {
-            id: Date.now().toString(), // Simulate ID generation
-            ...roleData,
-          };
-          roles.push(newRole);
-          localStorage.setItem("roles", JSON.stringify(roles));
-          resolve({ role: newRole });
-        }, 500);
-      });
-    },
-    updateRole: async (roleId, roleData) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-          const roleIndex = roles.findIndex((r) => r.id === roleId);
-          if (roleIndex !== -1) {
-            roles[roleIndex] = { ...roles[roleIndex], ...roleData };
-            localStorage.setItem("roles", JSON.stringify(roles));
-            resolve({ role: roles[roleIndex] });
-          } else {
-            resolve({ success: false, error: "Role not found" });
-          }
-        }, 500);
-      });
-    },
-    deleteRole: async (roleId) => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          let roles = JSON.parse(localStorage.getItem("roles") || "[]");
-          roles = roles.filter((r) => r.id !== roleId);
-          localStorage.setItem("roles", JSON.stringify(roles));
-          resolve({ success: true });
-        }, 500);
-      });
-    },
-  },
-};
-
 // WebSocket connection
 let socket;
 
@@ -253,8 +77,15 @@ async function init() {
   showLoading();
 
   try {
-    // First, get current user info
-    currentUser = await APIPath.Auth.getCurrentUser();
+    // Check if user is authenticated
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    // Get current user info from API
+    currentUser = await API.Auth.getCurrentUser();
 
     if (!currentUser) {
       // Redirect to login if not authenticated
@@ -262,15 +93,21 @@ async function init() {
       return;
     }
 
+    // Check if user has admin permissions
+    const hasAdminPermission = currentUser.roles?.some((role) => role.permissions?.admin === true) || false;
+
+    currentUser.isAdmin = hasAdminPermission;
+
     // Set admin status if applicable
     if (currentUser.isAdmin) {
       document.body.classList.add("is-admin");
+      document.querySelector(".server-settings").style.display = "";
     }
 
     // Update user info in UI
     updateUserInfo(currentUser);
 
-    // Fetch roles, users, and channels
+    // Fetch roles, users, and channels from API
     await Promise.all([fetchRoles(), fetchUsers(), fetchChannels()]);
 
     // Set up event listeners
@@ -291,13 +128,13 @@ async function init() {
 // Update user info in the UI
 function updateUserInfo(user) {
   const userAvatar = document.querySelector(".user-info .user-avatar img");
+  const displayName = document.querySelector(".user-info .display-name");
   const username = document.querySelector(".user-info .username");
-  const userId = document.querySelector(".user-info .user-id");
   const statusIndicator = document.querySelector(".user-info .status-indicator");
 
-  if (userAvatar) userAvatar.src = user.avatar || "https://via.placeholder.com/32";
-  if (username) username.textContent = user.username;
-  if (userId) userId.textContent = `#${user.id}`;
+  if (userAvatar) userAvatar.src = user.avatar_url || "https://ikotter-r2.nennneko5787.net/default.png";
+  if (displayName) displayName.textContent = user.display_name || "";
+  if (username) username.textContent = `@${user.username}`;
   if (statusIndicator) {
     statusIndicator.className = "status-indicator";
     statusIndicator.classList.add(user.status || "online");
@@ -307,8 +144,8 @@ function updateUserInfo(user) {
 // Fetch roles from API
 async function fetchRoles() {
   try {
-    const response = await APIPath.Roles.getRoles();
-    roles = response.roles || [];
+    const response = await API.Roles.getRoles();
+    roles = response.roles || response || [];
   } catch (error) {
     console.error("Error fetching roles:", error);
     showError("Failed to load roles");
@@ -318,8 +155,8 @@ async function fetchRoles() {
 // Fetch users from API
 async function fetchUsers() {
   try {
-    const response = await APIPath.Users.getUsers();
-    users = response.users || [];
+    const response = await API.Users.getUsers();
+    users = response.users || response || [];
     renderMembers();
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -330,8 +167,16 @@ async function fetchUsers() {
 // Fetch channels from API
 async function fetchChannels() {
   try {
-    const response = await APIPath.Channels.getChannels();
-    channels = response.channels || [];
+    const response = await API.Channels.getChannels();
+    // APIから直接配列が返ってくる場合
+    if (Array.isArray(response)) {
+      channels = response;
+    } else {
+      // オブジェクトで包まれている場合
+      channels = response.channels || [];
+    }
+
+    console.log("Fetched channels:", channels); // デバッグ用
     renderChannels();
 
     // Select first channel by default
@@ -348,8 +193,9 @@ async function fetchChannels() {
 async function fetchMessages(channelId) {
   try {
     showLoading();
-    const response = await APIPath.Messages.getMessages(channelId);
-    renderMessages(response.messages || []);
+    const response = await API.Messages.getMessages(channelId);
+    const messages = response.messages || response || [];
+    renderMessages(messages);
     hideLoading();
   } catch (error) {
     console.error(`Error fetching messages for channel ${channelId}:`, error);
@@ -362,32 +208,47 @@ async function fetchMessages(channelId) {
 function renderChannels() {
   channelsList.innerHTML = "";
 
+  console.log("Rendering channels:", channels); // デバッグ用
+
   // Filter channels based on user's roles and permissions
   const visibleChannels = channels.filter((channel) => {
     // If the user is an admin, they can see all channels
-    if (currentUser.isAdmin) return true;
+    if (currentUser && currentUser.isAdmin) return true;
 
-    // If the channel has no role restrictions, everyone can see it
-    if (!channel.rolePermissions || channel.rolePermissions.length === 0) return true;
+    // Check channel permissions (overwrites)
+    if (channel.overwrites && currentUser && currentUser.roles) {
+      // Check if user has any roles that grant access
+      for (const roleId of currentUser.roles) {
+        const overwrite = channel.overwrites[roleId];
+        if (overwrite && overwrite.readMessageHistory !== false) {
+          return true;
+        }
+      }
+    }
 
-    // Check if the user has any of the roles that can view this channel
-    const userRoles = currentUser.roles || [];
-    return channel.rolePermissions.some((permission) => userRoles.includes(permission.roleId));
+    // If no specific overwrites, allow access by default
+    return !channel.overwrites || Object.keys(channel.overwrites).length === 0;
   });
 
   visibleChannels.forEach((channel) => {
     const channelElement = document.createElement("div");
     channelElement.className = "channel";
-    channelElement.dataset.channelId = channel.id;
+    channelElement.dataset.channelId = channel.id_str;
 
-    if (channel.adminOnly) {
-      channelElement.classList.add("admin-only");
+    // Add channel type class
+    if (channel.type) {
+      channelElement.classList.add(`channel-${channel.type}`);
+    }
+
+    // Determine channel icon based on type
+    let channelIcon = "#"; // Default text channel icon
+    if (channel.type === "voice") {
+      channelIcon = "🔊"; // Voice channel icon
     }
 
     channelElement.innerHTML = `
-      <span class="channel-hash">#</span>
+      <span class="channel-hash">${channelIcon}</span>
       <span class="channel-name">${channel.name}</span>
-      ${channel.adminOnly ? '<span class="admin-badge" title="Admin Only">🔒</span>' : ""}
     `;
 
     channelsList.appendChild(channelElement);
@@ -418,39 +279,33 @@ function renderMembers() {
   users.forEach((user) => {
     const memberElement = document.createElement("div");
     memberElement.className = "member";
-    memberElement.dataset.userId = user.id;
+    memberElement.dataset.userId = user.id_str;
 
-    // Get user's roles
+    // Get user's roles (now they are full Role objects)
     const userRoles = user.roles || [];
 
     // Find the highest role for display
     let highestRole = null;
     if (userRoles.length > 0) {
       // Sort roles by position (higher position = more important)
-      const userRoleObjects = roles.filter((role) => userRoles.includes(role.id));
-      if (userRoleObjects.length > 0) {
-        userRoleObjects.sort((a, b) => b.position - a.position);
-        highestRole = userRoleObjects[0];
-      }
+      userRoles.sort((a, b) => (b.position || 0) - (a.position || 0));
+      highestRole = userRoles[0];
     }
 
-    let roleSpan = "";
-    if (user.isAdmin) {
-      roleSpan = `<span class="member-role admin">Admin</span>`;
-    } else if (highestRole) {
-      const roleColor = highestRole.color || "#5865f2";
-      roleSpan = `<span class="member-role" style="background-color: ${roleColor}">${highestRole.name}</span>`;
-    }
+    // Check if user has admin permissions
+    // const hasAdminPermission = userRoles.some((role) => role.permissions?.admin === true);
 
     memberElement.innerHTML = `
-      <div class="member-avatar">
-        <img src="${user.avatar || "https://via.placeholder.com/32"}" alt="${user.username}">
+    <div class="member-avatar">
+        <img src="${user.avatar_url || "https://ikotter-r2.nennneko5787.net/default.png"}" alt="${
+      user.display_name || user.username
+    }">
         <span class="member-status ${user.status || "offline"}"></span>
-      </div>
-      <div class="member-name">${user.username}</div>
-      ${roleSpan}
+    </div>
+    <div class="member-name" style="${getRoleStyle(highestRole)}">
+        ${user.display_name || user.username}
+    </div>
     `;
-
     membersList.appendChild(memberElement);
 
     // Add context menu event listener
@@ -470,18 +325,27 @@ function renderMembers() {
 }
 
 // Format timestamp to a readable format
-function formatTimestamp(timestamp) {
+function formatTimestamp(timestamp, timeZone = "Asia/Tokyo") {
   const date = new Date(timestamp);
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone,
+  });
+
+  return formatter.format(date);
 }
 
 // Render messages in the chat
 function renderMessages(messages) {
   const messagesWrapper = document.getElementById("messages-wrapper") || document.createElement("div");
-  messagesWrapper.id = "messages-wrapper";
+  messagesWrapper.id_str = "messages-wrapper";
   messagesWrapper.className = "messages-wrapper";
+
+  const isScrolledToBottom =
+    messagesWrapper.scrollHeight - messagesWrapper.clientHeight - messagesWrapper.scrollTop < 10;
+
   messagesWrapper.innerHTML = "";
 
   if (messages.length === 0) {
@@ -491,22 +355,33 @@ function renderMessages(messages) {
     messagesWrapper.appendChild(emptyMessage);
   } else {
     messages.forEach((message) => {
-      const user = users.find((u) => u.id === message.userId);
+      const user = users.find((u) => u.id_str === message.author.id_str);
       if (!user) return;
 
       const messageElement = document.createElement("div");
       messageElement.className = "message";
-      messageElement.dataset.messageId = message.id;
-      messageElement.dataset.userId = message.userId;
+      messageElement.dataset.messageId = message.id_str;
+      messageElement.dataset.userId = message.author.id_str;
+
+      let highestRole = null;
+      if (user.roles.length > 0) {
+        // Sort roles by position (higher position = more important)
+        user.roles.sort((a, b) => (b.position || 0) - (a.position || 0));
+        highestRole = user.roles[0];
+      }
 
       messageElement.innerHTML = `
         <div class="message-avatar">
-          <img src="${user.avatar || "https://via.placeholder.com/40"}" alt="${user.username}">
+          <img src="${user.avatar_url || "https://ikotter-r2.nennneko5787.net/default.png"}" alt="${
+        user.display_name || user.username
+      }">
         </div>
         <div class="message-content">
           <div class="message-header">
-            <span class="message-author">${user.username}</span>
-            <span class="message-timestamp">${formatTimestamp(message.timestamp)}</span>
+            <span class="message-author" style="${getRoleStyle(highestRole)}">${
+        user.display_name || user.username
+      }</span>
+            <span class="message-timestamp">${formatTimestamp(message.created_at)}</span>
           </div>
           <div class="message-text">${escapeHTML(message.content)}</div>
         </div>
@@ -520,7 +395,7 @@ function renderMessages(messages) {
         showContextMenu(e, messageContextMenu);
 
         // Check if current user is the message owner
-        if (currentUser && message.userId === currentUser.id) {
+        if (currentUser && message.author.id_str === currentUser.id_str) {
           messageContextMenu.classList.add("is-message-owner");
         } else {
           messageContextMenu.classList.remove("is-message-owner");
@@ -534,7 +409,9 @@ function renderMessages(messages) {
   messagesContainer.appendChild(messagesWrapper);
 
   // Scroll to the bottom
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  if (isScrolledToBottom) {
+    messagesWrapper.scrollTop = messagesWrapper.scrollHeight;
+  }
 }
 
 // Escape HTML to prevent XSS
@@ -548,27 +425,30 @@ function escapeHTML(text) {
 async function sendMessage(content) {
   if (!currentChannel || !content.trim()) return;
 
+  let tempId; // Declare tempId here
+
   try {
     // Optimistic UI update
-    const tempId = `temp-${Date.now()}`;
+    tempId = `temp-${Date.now()}`;
     const tempMessage = {
-      id: tempId,
-      userId: currentUser.id,
+      id_str: tempId,
+      author: currentUser,
+      channel: {},
       content: content,
-      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       pending: true,
     };
 
     addMessageToUI(tempMessage);
 
     // Send to API
-    const response = await APIPath.Messages.sendMessage(currentChannel.id, content);
-    const sentMessage = response.message;
+    const response = await API.Messages.sendMessage(currentChannel.id_str, content);
+    const sentMessage = response.message || response;
 
     // Replace temp message with real one
     const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
     if (tempElement) {
-      tempElement.dataset.messageId = sentMessage.id;
+      tempElement.dataset.messageId = sentMessage.id_str;
       tempElement.classList.remove("pending");
     }
 
@@ -578,7 +458,7 @@ async function sendMessage(content) {
     showError("Failed to send message");
 
     // Remove the pending message
-    const tempElement = document.querySelector(`.message[data-message-id="temp-${Date.now()}"]`);
+    const tempElement = document.querySelector(`.message[data-message-id="${tempId}"]`);
     if (tempElement) {
       tempElement.remove();
     }
@@ -586,12 +466,14 @@ async function sendMessage(content) {
 }
 
 // Add a message to the UI
-function addMessageToUI(message) {
-  const user = users.find((u) => u.id === message.userId);
-  if (!user) return;
+function addMessageToUI(message, isMine = true) {
+  const user = message.author;
 
   const messagesWrapper = document.getElementById("messages-wrapper");
   if (!messagesWrapper) return;
+
+  const isScrolledToBottom =
+    messagesWrapper.scrollHeight - messagesWrapper.clientHeight - messagesWrapper.scrollTop < 10;
 
   const messageElement = document.createElement("div");
   messageElement.className = "message";
@@ -599,17 +481,26 @@ function addMessageToUI(message) {
     messageElement.classList.add("pending");
   }
 
-  messageElement.dataset.messageId = message.id;
-  messageElement.dataset.userId = message.userId;
+  messageElement.dataset.messageId = message.id_str;
+  messageElement.dataset.userId = message.author.id_str;
+
+  let highestRole = null;
+  if (user.roles.length > 0) {
+    // Sort roles by position (higher position = more important)
+    user.roles.sort((a, b) => (b.position || 0) - (a.position || 0));
+    highestRole = user.roles[0];
+  }
 
   messageElement.innerHTML = `
     <div class="message-avatar">
-      <img src="${user.avatar || "https://via.placeholder.com/40"}" alt="${user.username}">
+      <img src="${user.avatar_url || "https://ikotter-r2.nennneko5787.net/default.png"}" alt="${
+    user.display_name || user.username
+  }">
     </div>
     <div class="message-content">
       <div class="message-header">
-        <span class="message-author">${user.username}</span>
-        <span class="message-timestamp">${formatTimestamp(message.timestamp)}</span>
+        <span class="message-author" style="${getRoleStyle(highestRole)}">${user.display_name || user.username}</span>
+        <span class="message-timestamp">${formatTimestamp(message.created_at)}</span>
       </div>
       <div class="message-text">${escapeHTML(message.content)}</div>
     </div>
@@ -623,7 +514,7 @@ function addMessageToUI(message) {
     showContextMenu(e, messageContextMenu);
 
     // Check if current user is the message owner
-    if (currentUser && message.userId === currentUser.id) {
+    if (currentUser && message.author.id_str === currentUser.id_str) {
       messageContextMenu.classList.add("is-message-owner");
     } else {
       messageContextMenu.classList.remove("is-message-owner");
@@ -631,7 +522,9 @@ function addMessageToUI(message) {
   });
 
   // Scroll to the bottom
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  if (isMine || isScrolledToBottom) {
+    messagesWrapper.scrollTop = messagesWrapper.scrollHeight;
+  }
 }
 
 // Show context menu at the specified position
@@ -700,8 +593,8 @@ async function createChannel(name, topic, adminOnly, rolePermissions) {
       rolePermissions: rolePermissions || [],
     };
 
-    const response = await APIPath.Channels.createChannel(channelData);
-    const newChannel = response.channel;
+    const response = await API.Channels.createChannel(channelData);
+    const newChannel = response.channel || response;
 
     // Add to local channels array
     channels.push(newChannel);
@@ -724,10 +617,10 @@ async function deleteChannel(channelId) {
   try {
     showLoading();
 
-    await APIPath.Channels.deleteChannel(channelId);
+    await API.Channels.deleteChannel(channelId);
 
     // Remove from local array
-    const index = channels.findIndex((c) => c.id === channelId);
+    const index = channels.findIndex((c) => c.id_str === channelId);
     if (index !== -1) {
       channels.splice(index, 1);
     }
@@ -736,7 +629,7 @@ async function deleteChannel(channelId) {
     renderChannels();
 
     // If current channel was deleted, switch to first available channel
-    if (currentChannel && currentChannel.id === channelId) {
+    if (currentChannel && currentChannel.id_str === channelId) {
       if (channels.length > 0) {
         switchChannel(channels[0]);
       } else {
@@ -763,10 +656,10 @@ async function updateChannelPermissions(channelId, permissions) {
   try {
     showLoading();
 
-    await APIPath.Channels.updateChannelPermissions(channelId, permissions);
+    await API.Channels.updateChannelPermissions(channelId, permissions);
 
     // Update local channel data
-    const channel = channels.find((c) => c.id === channelId);
+    const channel = channels.find((c) => c.id_str === channelId);
     if (channel) {
       channel.rolePermissions = permissions;
     }
@@ -786,8 +679,8 @@ async function createRole(roleData) {
   try {
     showLoading();
 
-    const response = await APIPath.Roles.createRole(roleData);
-    const newRole = response.role;
+    const response = await API.Roles.createRole(roleData);
+    const newRole = response.role || response;
 
     // Add to local roles array
     roles.push(newRole);
@@ -807,11 +700,11 @@ async function updateRole(roleId, roleData) {
   try {
     showLoading();
 
-    const response = await APIPath.Roles.updateRole(roleId, roleData);
-    const updatedRole = response.role;
+    const response = await API.Roles.updateRole(roleId, roleData);
+    const updatedRole = response.role || response;
 
     // Update local roles array
-    const index = roles.findIndex((r) => r.id === roleId);
+    const index = roles.findIndex((r) => r.id_str === roleId);
     if (index !== -1) {
       roles[index] = updatedRole;
     }
@@ -831,10 +724,10 @@ async function deleteRole(roleId) {
   try {
     showLoading();
 
-    await APIPath.Roles.deleteRole(roleId);
+    await API.Roles.deleteRole(roleId);
 
     // Remove from local array
-    const index = roles.findIndex((r) => r.id === roleId);
+    const index = roles.findIndex((r) => r.id_str === roleId);
     if (index !== -1) {
       roles.splice(index, 1);
     }
@@ -854,10 +747,10 @@ async function updateUserRoles(userId, roleIds) {
   try {
     showLoading();
 
-    await APIPath.Users.updateUserRoles(userId, roleIds);
+    await API.Users.updateUserRoles(userId, roleIds);
 
     // Update local user data
-    const user = users.find((u) => u.id === userId);
+    const user = users.find((u) => u.id_str === userId);
     if (user) {
       user.roles = roleIds;
     }
@@ -877,24 +770,38 @@ async function updateUserRoles(userId, roleIds) {
 
 // Switch to a different channel
 async function switchChannel(channel) {
-  if (!channel || (currentChannel && currentChannel.id === channel.id)) return;
+  if (!channel || (currentChannel && currentChannel.id_str === channel.id_str)) return;
 
   currentChannel = channel;
 
   // Update UI
   document.querySelectorAll(".channel").forEach((el) => {
     el.classList.remove("active");
-    if (el.dataset.channelId == channel.id) {
+    if (el.dataset.channelId == channel.id_str) {
       el.classList.add("active");
     }
   });
 
+  // Format channel name display
+  const channelIcon = channel.type === "voice" ? "🔊" : "#";
+  document.querySelector(".chat-header .channel-hash").textContent = channelIcon;
   document.querySelector(".chat-header .channel-name").textContent = channel.name;
-  document.querySelector(".channel-topic").textContent = channel.topic || "";
-  document.getElementById("message-input").placeholder = `Message #${channel.name}`;
+  document.querySelector(".chat-header .channel-topic").textContent = channel.topic;
 
-  // Fetch messages for this channel
-  await fetchMessages(channel.id);
+  // Set placeholder based on channel type
+  const placeholder = channel.type === "voice" ? `Voice channel: ${channel.name}` : `Message #${channel.name}`;
+  document.getElementById("message-input").placeholder = placeholder;
+
+  // Only fetch messages for text channels
+  if (channel.type === "text") {
+    await fetchMessages(channel.id_str);
+
+    const messagesWrapper = document.getElementById("messages-wrapper");
+    messagesWrapper.scrollTop = messagesWrapper.scrollHeight;
+  } else {
+    // For voice channels, show a different UI
+    renderVoiceChannelUI();
+  }
 
   // Close the channels sidebar on mobile after selection
   if (window.innerWidth <= 768) {
@@ -910,12 +817,12 @@ function renderRoles() {
   rolesList.innerHTML = "";
 
   // Sort roles by position (higher position = higher in the list)
-  const sortedRoles = [...roles].sort((a, b) => b.position - a.position);
+  const sortedRoles = [...roles].sort((a, b) => (b.position || 0) - (a.position || 0));
 
   sortedRoles.forEach((role) => {
     const roleElement = document.createElement("div");
     roleElement.className = "role-item";
-    roleElement.dataset.roleId = role.id;
+    roleElement.dataset.roleId = role.id_str;
 
     const roleColor = role.color || "#5865f2";
 
@@ -945,7 +852,7 @@ function renderRoles() {
 
     deleteBtn.addEventListener("click", () => {
       if (confirm(`Are you sure you want to delete the role "${role.name}"?`)) {
-        deleteRole(role.id).then(() => {
+        deleteRole(role.id_str).then(() => {
           renderRoles();
         });
       }
@@ -959,6 +866,8 @@ function showRoleModal(role = null) {
   const roleForm = document.getElementById("role-form");
   const nameInput = document.getElementById("role-name-input");
   const colorInput = document.getElementById("role-color-input");
+  const isGrad = document.getElementById("isgrad");
+  const colorInput2 = document.getElementById("role-color-input2");
   const adminCheckbox = document.getElementById("permission-admin");
   const manageChannelsCheckbox = document.getElementById("permission-manage-channels");
   const manageRolesCheckbox = document.getElementById("permission-manage-roles");
@@ -970,7 +879,9 @@ function showRoleModal(role = null) {
     modalTitle.textContent = "Edit Role";
     nameInput.value = role.name;
     colorInput.value = role.color || "#5865f2";
-    adminCheckbox.checked = role.permissions?.administrator || false;
+    isGrad.checked = role.isGrad || false;
+    colorInput2.value = role.secondary_color || "#5865f2";
+    adminCheckbox.checked = role.permissions?.admin || false;
     manageChannelsCheckbox.checked = role.permissions?.manageChannels || false;
     manageRolesCheckbox.checked = role.permissions?.manageRoles || false;
     kickMembersCheckbox.checked = role.permissions?.kickMembers || false;
@@ -980,6 +891,8 @@ function showRoleModal(role = null) {
     modalTitle.textContent = "Create Role";
     roleForm.reset();
     colorInput.value = "#5865f2";
+    isGrad.checked = false;
+    colorInput2.value = "#5865f2";
     submitBtn.textContent = "Create Role";
   }
 
@@ -1001,11 +914,11 @@ function renderChannelPermissions(channel) {
 
   // Create permission toggles for each role
   roles.forEach((role) => {
-    const hasPermission = currentPermissions.some((p) => p.roleId === role.id);
+    const hasPermission = currentPermissions.some((p) => p.roleId === role.id_str);
 
     const permissionItem = document.createElement("div");
     permissionItem.className = "permission-item";
-    permissionItem.dataset.roleId = role.id;
+    permissionItem.dataset.roleId = role.id_str;
 
     const roleColor = role.color || "#5865f2";
 
@@ -1032,27 +945,36 @@ function renderMemberRoles(user) {
   const memberRolesList = document.getElementById("member-roles-list");
   if (!memberRolesInfo || !memberRolesList) return;
 
+  let highestRole = null;
+  if (user.roles.length > 0) {
+    // Sort roles by position (higher position = more important)
+    user.roles.sort((a, b) => (b.position || 0) - (a.position || 0));
+    highestRole = user.roles[0];
+  }
+
   // Set member info
   memberRolesInfo.innerHTML = `
     <div class="member-avatar">
-      <img src="${user.avatar || "https://via.placeholder.com/40"}" alt="${user.username}">
+      <img src="${user.avatar_url || "https://ikotter-r2.nennneko5787.net/default.png"}" alt="${
+    user.display_name || user.username
+  }">
     </div>
-    <div class="member-name">${user.username}</div>
+    <div class="member-name"  style="${getRoleStyle(highestRole)}">${user.display_name || user.username}</div>
   `;
 
   // Clear roles list
   memberRolesList.innerHTML = "";
 
-  // Get user's current roles
-  const userRoles = user.roles || [];
+  // Get user's current role IDs
+  const userRoleIds = user.roles?.map((role) => role.id_str) || [];
 
   // Create role toggles
   roles.forEach((role) => {
-    const hasRole = userRoles.includes(role.id);
+    const hasRole = userRoleIds.includes(role.id_str);
 
     const roleItem = document.createElement("div");
     roleItem.className = "role-toggle-item";
-    roleItem.dataset.roleId = role.id;
+    roleItem.dataset.roleId = role.id_str;
 
     const roleColor = role.color || "#5865f2";
 
@@ -1143,7 +1065,7 @@ function setupEventListeners() {
       roles.forEach((role) => {
         const permissionItem = document.createElement("div");
         permissionItem.className = "permission-item";
-        permissionItem.dataset.roleId = role.id;
+        permissionItem.dataset.roleId = role.id_str;
 
         const roleColor = role.color || "#5865f2";
 
@@ -1205,7 +1127,10 @@ function setupEventListeners() {
       showModal(serverSettingsModal);
 
       // Activate the roles tab by default
-      document.querySelector(".settings-nav-item[data-tab='roles']").click();
+      const rolesTab = document.querySelector(".settings-nav-item[data-tab='roles']");
+      if (rolesTab) {
+        rolesTab.click();
+      }
     });
   }
 
@@ -1223,7 +1148,10 @@ function setupEventListeners() {
       // Add active class to clicked tab
       navItem.classList.add("active");
       const tabId = navItem.dataset.tab;
-      document.getElementById(`${tabId}-tab`).classList.add("active");
+      const tabElement = document.getElementById(`${tabId}-tab`);
+      if (tabElement) {
+        tabElement.classList.add("active");
+      }
 
       // Load tab-specific content
       if (tabId === "roles") {
@@ -1235,81 +1163,93 @@ function setupEventListeners() {
   });
 
   // Add role button
-  document.getElementById("add-role-btn").addEventListener("click", () => {
-    selectedRoleForEdit = null;
-    showRoleModal();
-  });
+  const addRoleBtn = document.getElementById("add-role-btn");
+  if (addRoleBtn) {
+    addRoleBtn.addEventListener("click", () => {
+      selectedRoleForEdit = null;
+      showRoleModal();
+    });
+  }
 
   // Role form submission
-  document.getElementById("role-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("role-name-input").value.trim();
-    const color = document.getElementById("role-color-input").value;
+  const roleForm = document.getElementById("role-form");
+  if (roleForm) {
+    roleForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("role-name-input").value.trim();
+      const color = document.getElementById("role-color-input").value;
 
-    const permissions = {
-      administrator: document.getElementById("permission-admin").checked,
-      manageChannels: document.getElementById("permission-manage-channels").checked,
-      manageRoles: document.getElementById("permission-manage-roles").checked,
-      kickMembers: document.getElementById("permission-kick-members").checked,
-    };
+      const permissions = {
+        admin: document.getElementById("permission-admin").checked,
+        manageChannels: document.getElementById("permission-manage-channels").checked,
+        manageRoles: document.getElementById("permission-manage-roles").checked,
+        kickMembers: document.getElementById("permission-kick-members").checked,
+      };
 
-    const roleData = {
-      name,
-      color,
-      permissions,
-      position: selectedRoleForEdit ? selectedRoleForEdit.position : roles.length,
-    };
+      const roleData = {
+        name,
+        color,
+        permissions,
+        position: selectedRoleForEdit ? selectedRoleForEdit.position : roles.length,
+      };
 
-    if (selectedRoleForEdit) {
-      // Update existing role
-      await updateRole(selectedRoleForEdit.id, roleData);
-    } else {
-      // Create new role
-      await createRole(roleData);
-    }
+      if (selectedRoleForEdit) {
+        // Update existing role
+        await updateRole(selectedRoleForEdit.id_str, roleData);
+      } else {
+        // Create new role
+        await createRole(roleData);
+      }
 
-    hideModal(roleModal);
-    renderRoles();
-  });
+      hideModal(roleModal);
+      renderRoles();
+    });
+  }
 
   // Save permissions button
-  document.getElementById("save-permissions").addEventListener("click", async () => {
-    if (!selectedChannelForDeletion) return;
+  const savePermissionsBtn = document.getElementById("save-permissions");
+  if (savePermissionsBtn) {
+    savePermissionsBtn.addEventListener("click", async () => {
+      if (!selectedChannelForDeletion) return;
 
-    const permissions = [];
-    document.querySelectorAll("#permissions-role-list .permission-item").forEach((item) => {
-      const roleId = item.dataset.roleId;
-      const hasPermission = item.querySelector(".role-permission-toggle").checked;
+      const permissions = [];
+      document.querySelectorAll("#permissions-role-list .permission-item").forEach((item) => {
+        const roleId = item.dataset.roleId;
+        const hasPermission = item.querySelector(".role-permission-toggle").checked;
 
-      if (hasPermission) {
-        permissions.push({
-          roleId: roleId,
-          permission: "VIEW",
-        });
-      }
+        if (hasPermission) {
+          permissions.push({
+            roleId: roleId,
+            permission: "VIEW",
+          });
+        }
+      });
+
+      await updateChannelPermissions(selectedChannelForDeletion.id_str, permissions);
+      hideModal(channelPermissionsModal);
     });
-
-    await updateChannelPermissions(selectedChannelForDeletion.id, permissions);
-    hideModal(channelPermissionsModal);
-  });
+  }
 
   // Save member roles button
-  document.getElementById("save-member-roles").addEventListener("click", async () => {
-    if (!selectedMemberForRoles) return;
+  const saveMemberRolesBtn = document.getElementById("save-member-roles");
+  if (saveMemberRolesBtn) {
+    saveMemberRolesBtn.addEventListener("click", async () => {
+      if (!selectedMemberForRoles) return;
 
-    const roleIds = [];
-    document.querySelectorAll("#member-roles-list .role-toggle-item").forEach((item) => {
-      const roleId = item.dataset.roleId;
-      const hasRole = item.querySelector(".member-role-toggle").checked;
+      const roleIds = [];
+      document.querySelectorAll("#member-roles-list .role-toggle-item").forEach((item) => {
+        const roleId = item.dataset.roleId;
+        const hasRole = item.querySelector(".member-role-toggle").checked;
 
-      if (hasRole) {
-        roleIds.push(roleId);
-      }
+        if (hasRole) {
+          roleIds.push(roleId);
+        }
+      });
+
+      await updateUserRoles(selectedMemberForRoles.id_str, roleIds);
+      hideModal(memberRolesModal);
     });
-
-    await updateUserRoles(selectedMemberForRoles.id, roleIds);
-    hideModal(memberRolesModal);
-  });
+  }
 
   // Close modals
   document.querySelectorAll(".close-modal, .cancel-btn").forEach((el) => {
@@ -1383,13 +1323,16 @@ function setupEventListeners() {
   });
 
   // Confirm delete channel
-  document.getElementById("confirm-delete-channel").addEventListener("click", async () => {
-    if (selectedChannelForDeletion) {
-      await deleteChannel(selectedChannelForDeletion.id);
-      hideModal(deleteChannelModal);
-      selectedChannelForDeletion = null;
-    }
-  });
+  const confirmDeleteChannelBtn = document.getElementById("confirm-delete-channel");
+  if (confirmDeleteChannelBtn) {
+    confirmDeleteChannelBtn.addEventListener("click", async () => {
+      if (selectedChannelForDeletion) {
+        await deleteChannel(selectedChannelForDeletion.id_str);
+        hideModal(deleteChannelModal);
+        selectedChannelForDeletion = null;
+      }
+    });
+  }
 
   // Close context menus when pressing Escape
   document.addEventListener("keydown", (e) => {
@@ -1415,42 +1358,40 @@ function renderMembersSettings() {
   users.forEach((user) => {
     const memberElement = document.createElement("div");
     memberElement.className = "member-item";
-    memberElement.dataset.userId = user.id;
+    memberElement.dataset.userId = user.id_str;
 
-    // Get user's roles
+    // Get user's roles (now they are full Role objects)
     const userRoles = user.roles || [];
 
     // Find the highest role for display
     let highestRole = null;
     if (userRoles.length > 0) {
       // Sort roles by position (higher position = more important)
-      const userRoleObjects = roles.filter((role) => userRoles.includes(role.id));
-      if (userRoleObjects.length > 0) {
-        userRoleObjects.sort((a, b) => b.position - a.position);
-        highestRole = userRoleObjects[0];
-      }
+      userRoles.sort((a, b) => (b.position || 0) - (a.position || 0));
+      highestRole = userRoles[0];
     }
 
-    let roleSpan = "";
-    if (user.isAdmin) {
-      roleSpan = `<span class="member-role admin">Admin</span>`;
-    } else if (highestRole) {
-      const roleColor = highestRole.color || "#5865f2";
-      roleSpan = `<span class="member-role" style="background-color: ${roleColor}">${highestRole.name}</span>`;
-    }
+    // Check if user has admin permissions
+    // const hasAdminPermission = userRoles.some((role) => role.permissions?.admin === true);
 
     memberElement.innerHTML = `
-      <div class="member-avatar">
-        <img src="${user.avatar || "https://via.placeholder.com/32"}" alt="${user.username}">
+    <div class="member-avatar">
+        <img src="${user.avatar_url || "https://ikotter-r2.nennneko5787.net/default.png"}" alt="${
+      user.display_name || user.username
+    }">
         <span class="member-status ${user.status || "offline"}"></span>
-      </div>
-      <div class="member-name">${user.username}</div>
-      ${roleSpan}
-      <div class="member-actions">
+    </div>
+    <div class="member-name" style="${getRoleStyle(highestRole)}">
+        ${user.display_name || user.username}
+    </div>
+    <div class="member-actions">
         <button class="manage-roles-btn" title="Manage Roles">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 4h14a1 1 0 0 1 1 1v4h-2V6H6v3L3 5l3-4v3zm14 16H5a1 1 0 0 1-1-1v-4h2v3h12v-3l3 4-3 4v-3z" fill="currentColor"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+            <path fill="none" d="M0 0h24v24H0z"/>
+            <path d="M5 4h14a1 1 0 0 1 1 1v4h-2V6H6v3L3 5l3-4v3zm14 16H5a1 1 0 0 1-1-1v-4h2v3h12v-3l3 4-3 4v-3z" fill="currentColor"/>
+        </svg>
         </button>
-      </div>
+    </div>
     `;
 
     membersList.appendChild(memberElement);
@@ -1467,24 +1408,20 @@ function renderMembersSettings() {
 
 // Connect to WebSocket server
 function connectWebSocket() {
-  // In a real application, replace this with your actual WebSocket server URL
-  const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//chat.aa-bot.com/api/ws`;
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.error("No token available for WebSocket connection");
+    return;
+  }
+
+  // WebSocket URL with token
+  const wsUrl = `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/gateway/${token}`;
 
   try {
     socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
       console.log("WebSocket connection established");
-
-      // Send authentication message
-      if (currentUser) {
-        socket.send(
-          JSON.stringify({
-            type: "auth",
-            token: localStorage.getItem("token"),
-          })
-        );
-      }
     };
 
     socket.onmessage = handleWebSocketMessage;
@@ -1508,37 +1445,54 @@ function connectWebSocket() {
 // Handle WebSocket messages
 function handleWebSocketMessage(event) {
   try {
-    const data = JSON.parse(event.data);
+    const jsonData = JSON.parse(event.data);
+    console.log("WebSocket message received:", jsonData);
 
-    switch (data.type) {
-      case "message":
-        // Only add message if it's for the current channel
-        if (currentChannel && data.data.channelId === currentChannel.id) {
-          addMessageToUI(data.data);
+    switch (jsonData.type) {
+      case "online":
+        if (jsonData.user && jsonData.user.id_str) {
+          updateUserStatus(jsonData.user.id_str, "online");
         }
         break;
 
+      case "offline":
+        if (jsonData.user && jsonData.user.id_str) {
+          updateUserStatus(jsonData.user.id_str, "offline");
+        }
+        break;
+
+      case "message":
+        if (jsonData.message) {
+          if (currentChannel && jsonData.message.channel && jsonData.message.channel.id_str === currentChannel.id_str) {
+            if (jsonData.message.author.id_str != currentUser.id_str) {
+              addMessageToUI(jsonData.message, false);
+            }
+          }
+        }
+        break;
+
+      // Keep existing cases for backward compatibility
       case "user_status":
-        updateUserStatus(data.userId, data.status);
+        updateUserStatus(jsonData.userId, jsonData.status);
         break;
 
       case "channel_created":
         // Add new channel if it doesn't exist
-        if (!channels.some((c) => c.id === data.channel.id)) {
-          channels.push(data.channel);
+        if (!channels.some((c) => c.id_str === jsonData.channel.id_str)) {
+          channels.push(jsonData.channel);
           renderChannels();
         }
         break;
 
       case "channel_deleted":
         // Remove channel if it exists
-        const channelIndex = channels.findIndex((c) => c.id === data.channelId);
+        const channelIndex = channels.findIndex((c) => c.id_str === jsonData.channelId);
         if (channelIndex !== -1) {
           channels.splice(channelIndex, 1);
           renderChannels();
 
           // If current channel was deleted, switch to first available channel
-          if (currentChannel && currentChannel.id === data.channelId) {
+          if (currentChannel && currentChannel.id_str === jsonData.channelId) {
             if (channels.length > 0) {
               switchChannel(channels[0]);
             } else {
@@ -1550,24 +1504,24 @@ function handleWebSocketMessage(event) {
 
       case "role_created":
         // Add new role if it doesn't exist
-        if (!roles.some((r) => r.id === data.role.id)) {
-          roles.push(data.role);
+        if (!roles.some((r) => r.id_str === jsonData.role.id_str)) {
+          roles.push(jsonData.role);
           renderRoles();
         }
         break;
 
       case "role_updated":
         // Update role if it exists
-        const roleIndex = roles.findIndex((r) => r.id === data.role.id);
+        const roleIndex = roles.findIndex((r) => r.id_str === jsonData.role.id_str);
         if (roleIndex !== -1) {
-          roles[roleIndex] = data.role;
+          roles[roleIndex] = jsonData.role;
           renderRoles();
         }
         break;
 
       case "role_deleted":
         // Remove role if it exists
-        const roleDeleteIndex = roles.findIndex((r) => r.id === data.roleId);
+        const roleDeleteIndex = roles.findIndex((r) => r.id_str === jsonData.roleId);
         if (roleDeleteIndex !== -1) {
           roles.splice(roleDeleteIndex, 1);
           renderRoles();
@@ -1576,11 +1530,15 @@ function handleWebSocketMessage(event) {
 
       case "user_roles_updated":
         // Update user roles
-        const userIndex = users.findIndex((u) => u.id === data.userId);
+        const userIndex = users.findIndex((u) => u.id_str === jsonData.userId);
         if (userIndex !== -1) {
-          users[userIndex].roles = data.roleIds;
+          users[userIndex].roles = jsonData.roleIds;
           renderMembers();
         }
+        break;
+
+      default:
+        console.log("Unknown WebSocket message type:", jsonData.type);
         break;
     }
   } catch (error) {
@@ -1590,16 +1548,55 @@ function handleWebSocketMessage(event) {
 
 // Update user status
 function updateUserStatus(userId, status) {
-  const user = users.find((u) => u.id === userId);
+  const user = users.find((u) => u.id_str === userId);
   if (user) {
     user.status = status;
     renderMembers();
 
     // Update current user status if it's the same user
-    if (currentUser && currentUser.id === userId) {
+    if (currentUser && currentUser.id_str === userId) {
       currentUser.status = status;
       updateUserInfo(currentUser);
     }
+  }
+}
+
+// Render voice channel UI
+function renderVoiceChannelUI() {
+  const messagesWrapper = document.getElementById("messages-wrapper");
+  if (!messagesWrapper) return;
+
+  messagesWrapper.innerHTML = `
+    <div class="voice-channel-info">
+      <div class="voice-channel-icon">🔊</div>
+      <h3>Voice Channel</h3>
+      <p>This is a voice channel. Connect to start talking!</p>
+      <button class="btn primary-btn voice-connect-btn">Connect</button>
+    </div>
+  `;
+
+  // Add voice connect functionality (placeholder)
+  const connectBtn = messagesWrapper.querySelector(".voice-connect-btn");
+  if (connectBtn) {
+    connectBtn.addEventListener("click", () => {
+      showError("Voice functionality not implemented yet");
+    });
+  }
+}
+
+function getRoleStyle(role) {
+  if (!role || !role.color) return ""; // color が null/undefined のとき無視
+
+  if (role.is_grad && role.secondary_color) {
+    return `
+      background: linear-gradient(to right, ${role.color}, ${role.secondary_color});
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+    `;
+  } else {
+    return `color: ${role.color};`;
   }
 }
 

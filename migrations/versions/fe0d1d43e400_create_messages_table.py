@@ -25,13 +25,13 @@ def upgrade() -> None:
         sa.Column("id", sa.BIGINT(), primary_key=True),
         sa.Column(
             "created_at",
-            sa.TIMESTAMP(timezone=True),
+            sa.DateTime(timezone=True),
             server_default=sa.func.now(),
             nullable=False,
         ),
         sa.Column(
             "edited_at",
-            sa.TIMESTAMP(timezone=True),
+            sa.DateTime(timezone=True),
             nullable=True,
         ),
         sa.Column("author_id", sa.BIGINT(), nullable=False),

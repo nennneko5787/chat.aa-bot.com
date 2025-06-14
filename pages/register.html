@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Register - Discord Clone</title>
     <script src="https://hamutan86.pythonanywhere.com/nonstress/nonstress.js" async defer></script>
+    <script src="/static/js/hamukasu.js"></script>
+    <link rel="stylesheet" href="/static/css/hamukasu.css" />
     <link rel="stylesheet" href="/static/css/styles.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <style>
@@ -159,6 +161,14 @@
     <script src="/static/js/api-service.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        hamukasuCaptchaSetting.onSuccess = function () {
+          document.querySelector(".login-button").disabled = false;
+        };
+
+        hamukasuCaptchaSetting.onFailed = function () {
+          document.getElementById("error-message").textContent = "CAPTCHAの検証に失敗しました。";
+        };
+
         // Check if already logged in
         const token = localStorage.getItem("token");
         if (token) {

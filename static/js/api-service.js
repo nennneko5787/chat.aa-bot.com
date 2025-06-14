@@ -10,7 +10,7 @@ async function apiRequest(endpoint, options = {}) {
   const defaultOptions = {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      Authorization: `${localStorage.getItem("token")}`,
     },
   };
 
@@ -83,7 +83,7 @@ const AuthAPI = {
 
   // Get current user info
   getCurrentUser: () => {
-    return apiRequest("/auth/me");
+    return apiRequest("/users/me");
   },
 };
 
@@ -108,10 +108,10 @@ const UsersAPI = {
   },
 
   // Update user roles
-  updateUserRoles: (userId, roleIds) => {
+  updateUserRoles: (userId, roles) => {
     return apiRequest(`/users/${userId}/roles`, {
-      method: "PUT",
-      body: JSON.stringify({ roleIds }),
+      method: "PATCH",
+      body: JSON.stringify({ roles }),
     });
   },
 };

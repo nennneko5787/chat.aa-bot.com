@@ -121,6 +121,44 @@ body {
   color: var(--text-muted);
 }
 
+/* Voice channel styles */
+.channel-voice .channel-hash {
+  color: var(--online);
+}
+
+.voice-channel-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px;
+}
+
+.voice-channel-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.voice-channel-info h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--text-normal);
+}
+
+.voice-channel-info p {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.voice-connect-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+}
+
 /* Server settings button */
 .server-settings {
   padding: 8px 16px;
@@ -189,7 +227,7 @@ body {
   overflow: hidden;
 }
 
-.username {
+.display-name {
   display: block;
   font-weight: 600;
   font-size: 14px;
@@ -198,7 +236,7 @@ body {
   text-overflow: ellipsis;
 }
 
-.user-id {
+.username {
   display: block;
   font-size: 12px;
   color: var(--text-muted);
@@ -273,6 +311,7 @@ body {
 .messages-wrapper {
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .message {
@@ -508,22 +547,232 @@ body {
   background-color: var(--bg-primary);
   border-radius: 4px;
   z-index: 1001;
-  width: 440px;
-  max-width: 90%;
+  width: 90vw;
+  max-width: 90vw;
   display: none;
 }
 
 .modal-content {
-  max-height: 80vh;
+  max-height: 90vh;
   overflow-y: auto;
 }
 
 /* サーバー設定のスタイルを修正 */
 .modal-content-large {
-  width: 800px;
-  max-width: 90vw;
+  max-height: 90vh;
+  height: 90vh;
+  overflow: hidden;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+}
+
+.server-settings-body {
+  display: flex;
+  height: 540px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* PCでのみflexレイアウトを適用 */
+@media (min-width: 769px) {
+  .server-settings-body {
+    display: flex;
+  }
+}
+
+.settings-sidebar {
+  width: 220px;
+  min-width: 220px;
+  border-right: 1px solid rgba(79, 84, 92, 0.48);
+  background-color: var(--bg-secondary);
+  flex-shrink: 0;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.settings-nav {
+  padding: 16px 0;
+}
+
+.settings-nav-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: var(--interactive-normal);
+  font-size: 16px;
+  border-radius: 4px;
+  margin: 2px 8px;
+  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.settings-nav-item:hover {
+  background-color: var(--background-modifier-hover);
+  color: var(--interactive-hover);
+}
+
+.settings-nav-item.active {
+  background-color: var(--background-modifier-selected);
+  color: var(--interactive-active);
+}
+
+.settings-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  background-color: var(--bg-primary);
+  width: calc(100% - 220px);
+  max-width: calc(100% - 220px);
+}
+
+.settings-tab {
+  display: none;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.settings-tab.active {
+  display: block;
+}
+
+.settings-tab h3 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.roles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.roles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--bg-tertiary);
+  border-radius: 4px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.role-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.role-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.role-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.role-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.role-edit-btn,
+.role-delete-btn {
+  background: none;
+  border: none;
+  color: var(--interactive-normal);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.role-edit-btn:hover {
+  color: var(--interactive-hover);
+  background-color: var(--background-modifier-hover);
+}
+
+.role-delete-btn:hover {
+  color: var(--danger);
+  background-color: rgba(237, 66, 69, 0.1);
+}
+
+/* メンバーリスト設定のスタイル改善 */
+.members-list-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--bg-tertiary);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.member-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.member-item .member-name {
+  color: var(--text-normal);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.manage-roles-btn {
+  background: none;
+  border: none;
+  color: var(--interactive-normal);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.manage-roles-btn:hover {
+  color: var(--interactive-hover);
+  background-color: var(--background-modifier-hover);
 }
 
 .modal-header {
@@ -532,6 +781,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
 .modal-header h2 {
@@ -667,172 +917,6 @@ body {
   background-color: #c93b3b;
 }
 
-/* サーバー設定のスタイルを修正 */
-.server-settings-body {
-  display: flex;
-  padding: 0;
-  height: 500px;
-  max-height: 80vh;
-}
-
-.settings-sidebar {
-  width: 200px;
-  min-width: 200px;
-  border-right: 1px solid rgba(79, 84, 92, 0.48);
-  background-color: var(--bg-secondary);
-}
-
-.settings-nav {
-  padding: 16px 0;
-}
-
-.settings-nav-item {
-  padding: 10px 16px;
-  cursor: pointer;
-  color: var(--interactive-normal);
-  font-size: 16px;
-  border-radius: 4px;
-  margin: 2px 8px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.settings-nav-item:hover {
-  background-color: var(--background-modifier-hover);
-  color: var(--interactive-hover);
-}
-
-.settings-nav-item.active {
-  background-color: var(--background-modifier-selected);
-  color: var(--interactive-active);
-}
-
-.settings-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.settings-tab {
-  display: none;
-}
-
-.settings-tab.active {
-  display: block;
-}
-
-.settings-tab h3 {
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-/* ロールスタイルの改善 */
-.roles-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.roles-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.role-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  background-color: var(--bg-tertiary);
-  border-radius: 4px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.role-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.role-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  margin-right: 12px;
-}
-
-.role-name {
-  flex: 1;
-  font-weight: 500;
-}
-
-.role-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.role-edit-btn,
-.role-delete-btn {
-  background: none;
-  border: none;
-  color: var(--interactive-normal);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.role-edit-btn:hover {
-  color: var(--interactive-hover);
-  background-color: var(--background-modifier-hover);
-}
-
-.role-delete-btn:hover {
-  color: var(--danger);
-  background-color: rgba(237, 66, 69, 0.1);
-}
-
-/* メンバーリスト設定のスタイル改善 */
-.members-list-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.member-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  background-color: var(--bg-tertiary);
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.member-item:hover {
-  background-color: var(--background-modifier-hover);
-}
-
-.member-actions {
-  margin-left: auto;
-  display: flex;
-  gap: 8px;
-}
-
-.manage-roles-btn {
-  background: none;
-  border: none;
-  color: var(--interactive-normal);
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.manage-roles-btn:hover {
-  color: var(--interactive-hover);
-  background-color: var(--background-modifier-hover);
-}
-
 /* Server Settings Styles */
 
 /* Roles Styles */
@@ -910,14 +994,13 @@ body {
 
   /* モバイル対応の改善 */
   .modal-content-large {
-    width: 95%;
-    flex-direction: column;
+    height: 85vh;
+    max-height: 85vh;
   }
 
   .server-settings-body {
     flex-direction: column;
-    height: auto;
-    max-height: 80vh;
+    height: calc(85vh - 60px);
   }
 
   .settings-sidebar {
@@ -925,48 +1008,41 @@ body {
     min-width: 100%;
     border-right: none;
     border-bottom: 1px solid rgba(79, 84, 92, 0.48);
+    height: auto;
+    flex-shrink: 0;
   }
 
   .settings-nav {
     display: flex;
     overflow-x: auto;
     padding: 10px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .settings-nav-item {
     white-space: nowrap;
     margin: 0 4px;
+    flex-shrink: 0;
+    padding: 8px 12px;
   }
 
   .settings-content {
     padding: 15px;
-  }
-
-  .modal {
-    width: 90%;
-  }
-
-  .modal-content-large {
-    width: 95%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .settings-sidebar {
+    height: auto;
+    flex: 1;
+    overflow-y: auto;
     width: 100%;
-    min-width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(79, 84, 92, 0.48);
+    max-width: 100%;
   }
 
-  .settings-nav {
-    display: flex;
-    overflow-x: auto;
-    padding: 8px;
+  .roles-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
   }
 
-  .settings-nav-item {
-    white-space: nowrap;
+  .roles-header h3 {
+    margin-bottom: 0;
   }
 }
 
@@ -975,9 +1051,7 @@ body {
     display: none;
   }
 
-  .modal-content-large {
-    display: flex;
-  }
+  /* .modal-content-large のflexを削除 */
 }
 
 /* Add these styles to the end of your existing CSS file */
